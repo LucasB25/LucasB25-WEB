@@ -59,7 +59,7 @@
         #qrcode img {
             margin: 0 auto;
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            /* L'ombre est gérée par le conteneur maintenant pour éviter les conflits avec la transparence */
         }
 
         .hidden-section { display: none; }
@@ -82,6 +82,37 @@
             bottom: 20px;
             right: 20px;
             z-index: 9999;
+        }
+
+        /* Style pour les cercles de couleur */
+        .color-option {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        .color-option.active {
+            box-shadow: 0 0 0 2px white, 0 0 0 4px #6366f1;
+        }
+        
+        /* Fond Damier pour la transparence */
+        .bg-checkerboard {
+            background-image:
+                linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
+                linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
+                linear-gradient(-45deg, transparent 75%, #e5e7eb 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            background-color: #f9fafb;
+        }
+        .dark .bg-checkerboard {
+            background-image:
+                linear-gradient(45deg, #334155 25%, transparent 25%),
+                linear-gradient(-45deg, #334155 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #334155 75%),
+                linear-gradient(-45deg, transparent 75%, #334155 75%);
+            background-color: #1e293b;
         }
     </style>
 </head>
@@ -341,27 +372,52 @@
                     <h3 class="text-sm font-bold flex items-center text-slate-500 dark:text-slate-400"><i class="fa-solid fa-sliders mr-2"></i><span data-i18n="headerCust">Customization</span></h3>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <!-- Couleur -->
+                <div class="space-y-4">
+                    <!-- Couleur du Code -->
                     <div class="relative group">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 block" data-i18n="labelColor">Color</label>
-                        <div class="relative h-10 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600 flex items-center px-2 cursor-pointer overflow-hidden">
-                            <input type="color" id="colorDark" oninput="triggerLiveGen()" value="#4F46E5" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                            <div id="previewDark" class="h-6 w-6 rounded border border-black/10 shadow-sm mr-2" style="background-color: #4F46E5;"></div>
-                            <span class="text-xs font-mono dark:text-white" data-i18n="labelCode">Code</span>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-1 mb-2 block" data-i18n="labelColor">Color</label>
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <div onclick="updateColor('Dark', '#000000', this)" class="color-option h-9 w-9 rounded-full bg-black cursor-pointer border border-slate-200 shadow-sm" title="Black"></div>
+                            <div onclick="updateColor('Dark', '#4F46E5', this)" class="color-option h-9 w-9 rounded-full bg-indigo-600 cursor-pointer border border-slate-200 shadow-sm active" title="Indigo"></div>
+                            <div onclick="updateColor('Dark', '#E11D48', this)" class="color-option h-9 w-9 rounded-full bg-rose-600 cursor-pointer border border-slate-200 shadow-sm" title="Rose"></div>
+                            <div onclick="updateColor('Dark', '#D97706', this)" class="color-option h-9 w-9 rounded-full bg-amber-600 cursor-pointer border border-slate-200 shadow-sm" title="Amber"></div>
+                            <div onclick="updateColor('Dark', '#059669', this)" class="color-option h-9 w-9 rounded-full bg-emerald-600 cursor-pointer border border-slate-200 shadow-sm" title="Emerald"></div>
+                            <div onclick="updateColor('Dark', '#2563EB', this)" class="color-option h-9 w-9 rounded-full bg-blue-600 cursor-pointer border border-slate-200 shadow-sm" title="Blue"></div>
+                            
+                            <!-- Custom -->
+                            <div class="relative h-9 w-9 rounded-full bg-gradient-to-tr from-pink-500 via-red-500 to-yellow-500 cursor-pointer shadow-sm flex items-center justify-center hover:scale-110 transition-transform color-option">
+                                <input type="color" id="colorDark" oninput="updateColor('Dark', this.value, this.parentNode, true)" value="#4F46E5" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                <i class="fa-solid fa-plus text-white text-xs drop-shadow-md pointer-events-none"></i>
+                            </div>
                         </div>
                     </div>
+
                     <!-- Fond -->
                     <div class="relative group">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 block" data-i18n="labelBg">Background</label>
-                        <div class="relative h-10 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600 flex items-center px-2 cursor-pointer overflow-hidden">
-                            <input type="color" id="colorLight" oninput="triggerLiveGen()" value="#FFFFFF" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                            <div id="previewLight" class="h-6 w-6 rounded border border-black/10 shadow-sm mr-2" style="background-color: #FFFFFF;"></div>
-                            <span class="text-xs font-mono dark:text-white" data-i18n="labelBgInd">Back</span>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase ml-1 mb-2 block" data-i18n="labelBg">Background</label>
+                        <div class="flex items-center gap-3 flex-wrap">
+                             <div onclick="updateColor('Light', '#FFFFFF', this)" class="color-option h-9 w-9 rounded-full bg-white cursor-pointer border border-slate-200 shadow-sm active" title="White"></div>
+                             <div onclick="updateColor('Light', '#F8FAFC', this)" class="color-option h-9 w-9 rounded-full bg-slate-50 cursor-pointer border border-slate-200 shadow-sm" title="Slate"></div>
+                             <div onclick="updateColor('Light', '#FEF2F2', this)" class="color-option h-9 w-9 rounded-full bg-red-50 cursor-pointer border border-slate-200 shadow-sm" title="Red Tint"></div>
+                             <div onclick="updateColor('Light', '#F0F9FF', this)" class="color-option h-9 w-9 rounded-full bg-sky-50 cursor-pointer border border-slate-200 shadow-sm" title="Blue Tint"></div>
+                             <div onclick="updateColor('Light', '#000000', this)" class="color-option h-9 w-9 rounded-full bg-black cursor-pointer border border-slate-200 shadow-sm" title="Black"></div>
+                             
+                             <!-- Option Transparent -->
+                             <div onclick="updateColor('Light', 'transparent', this)" class="color-option h-9 w-9 rounded-full bg-slate-100 cursor-pointer border border-slate-200 shadow-sm flex items-center justify-center relative overflow-hidden" title="Transparent">
+                                <div class="absolute inset-0 bg-checkerboard opacity-50"></div>
+                                <i class="fa-solid fa-ban text-slate-400 text-xs z-10"></i>
+                             </div>
+
+                             <!-- Custom -->
+                             <div class="relative h-9 w-9 rounded-full bg-gradient-to-tr from-slate-100 to-slate-300 border border-slate-200 cursor-pointer shadow-sm flex items-center justify-center hover:scale-110 transition-transform color-option">
+                                 <input type="color" id="colorLight" oninput="updateColor('Light', this.value, this.parentNode, true)" value="#FFFFFF" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                 <i class="fa-solid fa-plus text-slate-500 text-xs pointer-events-none"></i>
+                             </div>
                         </div>
                     </div>
+
                     <!-- Correction (ECC) -->
-                    <div>
+                    <div class="mt-4">
                         <label class="text-[10px] font-bold text-slate-400 uppercase ml-1 mb-1 block" data-i18n="labelEcc">Error Correction</label>
                         <select id="eccLevel" onchange="triggerLiveGen()" class="w-full h-10 pl-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-bold dark:text-white outline-none cursor-pointer">
                             <option value="L">Low (7%)</option>
@@ -389,7 +445,8 @@
                 <!-- Zone QR -->
                 <div class="relative group">
                     <div class="absolute -inset-2 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-[28px] blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-                    <div class="relative bg-white p-6 rounded-[20px] shadow-lg">
+                    <!-- Ajout d'un ID pour le conteneur du fond, afin de changer son style si transparent -->
+                    <div id="qrBgContainer" class="relative bg-white p-6 rounded-[20px] shadow-lg transition-colors duration-300">
                         <div id="qrcode" class="overflow-hidden flex items-center justify-center">
                             <!-- Placeholder vide -->
                             <div class="w-[200px] h-[200px] bg-slate-100 flex items-center justify-center text-slate-300 rounded-lg">
@@ -433,6 +490,153 @@
     <div id="toast-container"></div>
 
     <script type="text/javascript">
+        
+        let bgIsTransparent = false; // State global pour la transparence
+
+        // --- NOUVELLE LOGIQUE COULEURS ---
+        function updateColor(type, color, element, isCustom = false) {
+            const input = document.getElementById(`color${type}`);
+            
+            // Gestion Transparence
+            if (type === 'Light') {
+                if (color === 'transparent') {
+                    bgIsTransparent = true;
+                    // Visuellement pour l'UI, on met un fond spécial sur le conteneur de prévisu
+                    document.getElementById('qrBgContainer').classList.add('bg-checkerboard');
+                    document.getElementById('qrBgContainer').classList.remove('bg-white');
+                } else {
+                    bgIsTransparent = false;
+                    document.getElementById('qrBgContainer').classList.remove('bg-checkerboard');
+                    document.getElementById('qrBgContainer').classList.add('bg-white');
+                    input.value = color; // Mise à jour de l'input caché si couleur normale
+                }
+            } else {
+                input.value = color;
+            }
+
+            // Mise à jour visuelle des bulles (Active State)
+            const group = element.closest('.flex');
+            group.querySelectorAll('.color-option').forEach(el => el.classList.remove('active'));
+            // Si c'est le custom trigger (parent du input), on active le parent
+            if (isCustom) {
+               element.classList.add('active'); 
+            } else {
+               element.classList.add('active');
+            }
+
+            triggerLiveGen();
+        }
+
+        // --- MOTEUR DE GÉNÉRATION ---
+        let debounceTimer;
+        let qrCodeObj = null;
+
+        function triggerLiveGen() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(generateQR, 400);
+        }
+
+        function generateQR() {
+            const type = document.querySelector('input[name="qrType"]:checked').value;
+            let data = "";
+            let label = "";
+
+            switch(type) {
+                case 'url':
+                    data = document.getElementById('urlInput').value.trim();
+                    label = data.substring(0, 25) + (data.length>25 ? '...' : '');
+                    if(!data) return clearQR();
+                    break;
+                case 'wifi':
+                    const ssid = document.getElementById('wifiSSID').value.trim();
+                    const pass = document.getElementById('wifiPass').value;
+                    const algo = document.getElementById('wifiType').value;
+                    if(!ssid) return clearQR();
+                    data = `WIFI:S:${ssid};T:${algo};P:${pass};;`;
+                    label = `WiFi: ${ssid}`;
+                    break;
+                case 'whatsapp':
+                    const waPhone = document.getElementById('waPhone').value.trim().replace(/[^0-9+]/g, '');
+                    const waMsg = document.getElementById('waMessage').value;
+                    if(!waPhone) return clearQR();
+                    data = `https://wa.me/${waPhone}?text=${encodeURIComponent(waMsg)}`;
+                    label = `WhatsApp: ${waPhone}`;
+                    break;
+                case 'event':
+                    const title = document.getElementById('evTitle').value.trim();
+                    if(!title) return clearQR();
+                    const formatDate = (d) => d.replace(/[-:]/g, '') + '00';
+                    const start = document.getElementById('evStart').value;
+                    const end = document.getElementById('evEnd').value;
+                    const loc = document.getElementById('evLoc').value;
+                    
+                    data = `BEGIN:VEVENT\nSUMMARY:${title}\nLOCATION:${loc}\nDTSTART:${formatDate(start)}\nDTEND:${formatDate(end)}\nEND:VEVENT`;
+                    label = `Event: ${title}`;
+                    break;
+                case 'crypto':
+                    const coin = document.getElementById('cryptoType').value;
+                    const addr = document.getElementById('cryptoAddr').value.trim();
+                    const amount = document.getElementById('cryptoAmount').value;
+                    if(!addr) return clearQR();
+                    data = `${coin}:${addr}${amount ? '?amount='+amount : ''}`;
+                    label = `${coin.toUpperCase()}: ${addr.substr(0,6)}...`;
+                    break;
+                case 'geo':
+                    const lat = document.getElementById('geoLat').value.trim();
+                    const lon = document.getElementById('geoLon').value.trim();
+                    if(!lat || !lon) return clearQR();
+                    data = `geo:${lat},${lon}`;
+                    label = `GPS: ${lat}, ${lon}`;
+                    break;
+                case 'vcard':
+                    const fn = document.getElementById('vcardFirst').value.trim();
+                    const ln = document.getElementById('vcardLast').value.trim();
+                    const tel = document.getElementById('vcardPhone').value.trim();
+                    const email = document.getElementById('vcardEmail').value.trim();
+                    if(!fn && !ln) return clearQR();
+                    data = `BEGIN:VCARD\nVERSION:3.0\nN:${ln};${fn}\nFN:${fn} ${ln}\nTEL;TYPE=CELL:${tel}\nEMAIL:${email}\nEND:VCARD`;
+                    label = `Contact: ${fn} ${ln}`;
+                    break;
+                case 'text':
+                    data = document.getElementById('textInput').value.trim();
+                    if(!data) return clearQR();
+                    label = data.substring(0, 15) + "...";
+                    break;
+            }
+
+            const container = document.getElementById('qrcode');
+            container.innerHTML = "";
+            
+            const colorDark = document.getElementById('colorDark').value;
+            // Si transparent est actif, on utilise "transparent", sinon la valeur de l'input
+            const colorLight = bgIsTransparent ? "transparent" : document.getElementById('colorLight').value;
+            
+            const eccMap = { 'L': QRCode.CorrectLevel.L, 'M': QRCode.CorrectLevel.M, 'Q': QRCode.CorrectLevel.Q, 'H': QRCode.CorrectLevel.H };
+            const ecc = eccMap[document.getElementById('eccLevel').value];
+
+            try {
+                qrCodeObj = new QRCode(container, {
+                    text: data,
+                    width: 200,
+                    height: 200,
+                    colorDark : colorDark,
+                    colorLight : colorLight,
+                    correctLevel : ecc
+                });
+                addToHistory(type, label, data);
+            } catch(e) {
+                console.error("Erreur génération", e);
+            }
+        }
+
+        function clearQR() {
+            document.getElementById('qrcode').innerHTML = `
+                <div class="w-[200px] h-[200px] bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-300 rounded-lg">
+                    <i class="fa-solid fa-qrcode text-4xl opacity-20"></i>
+                </div>`;
+        }
+
+
         // --- LOCALIZATION / TRADUCTION ---
         const i18n = {
             en: {
@@ -585,118 +789,6 @@
             triggerLiveGen(); 
         }
 
-        // --- MOTEUR DE GÉNÉRATION ---
-        let debounceTimer;
-        let qrCodeObj = null;
-
-        function triggerLiveGen() {
-            clearTimeout(debounceTimer);
-            const colorDark = document.getElementById('colorDark').value;
-            const colorLight = document.getElementById('colorLight').value;
-            document.getElementById('previewDark').style.backgroundColor = colorDark;
-            document.getElementById('previewLight').style.backgroundColor = colorLight;
-
-            debounceTimer = setTimeout(generateQR, 400);
-        }
-
-        function generateQR() {
-            const type = document.querySelector('input[name="qrType"]:checked').value;
-            let data = "";
-            let label = "";
-
-            switch(type) {
-                case 'url':
-                    data = document.getElementById('urlInput').value.trim();
-                    label = data.substring(0, 25) + (data.length>25 ? '...' : '');
-                    if(!data) return clearQR();
-                    break;
-                case 'wifi':
-                    const ssid = document.getElementById('wifiSSID').value.trim();
-                    const pass = document.getElementById('wifiPass').value;
-                    const algo = document.getElementById('wifiType').value;
-                    if(!ssid) return clearQR();
-                    data = `WIFI:S:${ssid};T:${algo};P:${pass};;`;
-                    label = `WiFi: ${ssid}`;
-                    break;
-                case 'whatsapp':
-                    const waPhone = document.getElementById('waPhone').value.trim().replace(/[^0-9+]/g, '');
-                    const waMsg = document.getElementById('waMessage').value;
-                    if(!waPhone) return clearQR();
-                    data = `https://wa.me/${waPhone}?text=${encodeURIComponent(waMsg)}`;
-                    label = `WhatsApp: ${waPhone}`;
-                    break;
-                case 'event':
-                    const title = document.getElementById('evTitle').value.trim();
-                    if(!title) return clearQR();
-                    const formatDate = (d) => d.replace(/[-:]/g, '') + '00';
-                    const start = document.getElementById('evStart').value;
-                    const end = document.getElementById('evEnd').value;
-                    const loc = document.getElementById('evLoc').value;
-                    
-                    data = `BEGIN:VEVENT\nSUMMARY:${title}\nLOCATION:${loc}\nDTSTART:${formatDate(start)}\nDTEND:${formatDate(end)}\nEND:VEVENT`;
-                    label = `Event: ${title}`;
-                    break;
-                case 'crypto':
-                    const coin = document.getElementById('cryptoType').value;
-                    const addr = document.getElementById('cryptoAddr').value.trim();
-                    const amount = document.getElementById('cryptoAmount').value;
-                    if(!addr) return clearQR();
-                    data = `${coin}:${addr}${amount ? '?amount='+amount : ''}`;
-                    label = `${coin.toUpperCase()}: ${addr.substr(0,6)}...`;
-                    break;
-                case 'geo':
-                    const lat = document.getElementById('geoLat').value.trim();
-                    const lon = document.getElementById('geoLon').value.trim();
-                    if(!lat || !lon) return clearQR();
-                    data = `geo:${lat},${lon}`;
-                    label = `GPS: ${lat}, ${lon}`;
-                    break;
-                case 'vcard':
-                    const fn = document.getElementById('vcardFirst').value.trim();
-                    const ln = document.getElementById('vcardLast').value.trim();
-                    const tel = document.getElementById('vcardPhone').value.trim();
-                    const email = document.getElementById('vcardEmail').value.trim();
-                    if(!fn && !ln) return clearQR();
-                    data = `BEGIN:VCARD\nVERSION:3.0\nN:${ln};${fn}\nFN:${fn} ${ln}\nTEL;TYPE=CELL:${tel}\nEMAIL:${email}\nEND:VCARD`;
-                    label = `Contact: ${fn} ${ln}`;
-                    break;
-                case 'text':
-                    data = document.getElementById('textInput').value.trim();
-                    if(!data) return clearQR();
-                    label = data.substring(0, 15) + "...";
-                    break;
-            }
-
-            const container = document.getElementById('qrcode');
-            container.innerHTML = "";
-            
-            const colorDark = document.getElementById('colorDark').value;
-            const colorLight = document.getElementById('colorLight').value;
-            const eccMap = { 'L': QRCode.CorrectLevel.L, 'M': QRCode.CorrectLevel.M, 'Q': QRCode.CorrectLevel.Q, 'H': QRCode.CorrectLevel.H };
-            const ecc = eccMap[document.getElementById('eccLevel').value];
-
-            try {
-                qrCodeObj = new QRCode(container, {
-                    text: data,
-                    width: 200,
-                    height: 200,
-                    colorDark : colorDark,
-                    colorLight : colorLight,
-                    correctLevel : ecc
-                });
-                addToHistory(type, label, data);
-            } catch(e) {
-                console.error("Erreur génération", e);
-            }
-        }
-
-        function clearQR() {
-            document.getElementById('qrcode').innerHTML = `
-                <div class="w-[200px] h-[200px] bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-300 rounded-lg">
-                    <i class="fa-solid fa-qrcode text-4xl opacity-20"></i>
-                </div>`;
-        }
-
         // --- DOWNLOAD & SHARE ---
         function downloadQR() {
             const img = document.querySelector('#qrcode img');
@@ -819,7 +911,7 @@
                 width: 200,
                 height: 200,
                 colorDark : document.getElementById('colorDark').value,
-                colorLight : document.getElementById('colorLight').value,
+                colorLight : bgIsTransparent ? "transparent" : document.getElementById('colorLight').value,
                 correctLevel : ecc
             });
             showToast(i18n[currentLang].toastRestored);
