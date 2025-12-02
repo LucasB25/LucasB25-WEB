@@ -76,7 +76,6 @@
             min-height: 100vh;
             color: #e2e8f0;
             overflow-x: hidden;
-            /* Empêche le rebond sur iOS pour une sensation native */
             overscroll-behavior-y: none;
         }
 
@@ -151,9 +150,12 @@
         #download-menu.hidden-menu { opacity: 0; visibility: hidden; transform: translateY(10px) scale(0.95); }
         #download-menu.visible-menu { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
 
-        /* --- Install Button Animation --- */
-        #install-btn { display: none; } /* Hidden by default */
-        #install-btn.visible { display: flex; animation: pulse-soft 2s infinite; }
+        /* --- Install Button Styling --- */
+        #install-btn { 
+            display: flex;
+            cursor: pointer;
+        } 
+        #install-btn.pulse { animation: pulse-soft 2s infinite; }
         @keyframes pulse-soft {
             0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
             70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
@@ -174,36 +176,37 @@
         .form-section.active { display: block; }
     </style>
 </head>
-<body class="flex items-center justify-center p-4 md:p-8 min-h-screen">
+<body class="flex items-center justify-center p-0 md:p-8 min-h-screen">
 
-    <div class="glass-panel w-full max-w-6xl rounded-3xl overflow-hidden flex flex-col lg:flex-row shadow-card animate-fade-in relative z-10">
+    <!-- Container -->
+    <div class="glass-panel w-full max-w-6xl md:rounded-3xl flex flex-col lg:flex-row shadow-card animate-fade-in relative z-10 min-h-screen md:min-h-0">
         
         <!-- ================= GAUCHE : CONFIGURATION ================= -->
-        <div class="w-full lg:w-5/12 p-0 border-b lg:border-b-0 lg:border-r border-white/5 bg-[#0f172a]/40 flex flex-col overflow-hidden h-[85vh] lg:h-[800px]">
+        <div class="w-full lg:w-5/12 p-0 border-b lg:border-b-0 lg:border-r border-white/5 bg-[#0f172a]/40 flex flex-col h-auto lg:h-[800px]">
             
             <!-- Header -->
-            <div class="p-8 pb-4 shrink-0 flex justify-between items-center">
-                <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-brand to-brand-hover flex items-center justify-center text-white shadow-neon ring-1 ring-white/10">
-                        <i class="fa-solid fa-qrcode text-xl"></i>
+            <div class="p-6 md:p-8 pb-4 shrink-0 flex justify-between items-center sticky top-0 bg-[#0f172a]/90 backdrop-blur z-20 lg:static lg:bg-transparent">
+                <div class="flex items-center gap-3 md:gap-4">
+                    <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-brand to-brand-hover flex items-center justify-center text-white shadow-neon ring-1 ring-white/10 shrink-0">
+                        <i class="fa-solid fa-qrcode text-lg md:text-xl"></i>
                     </div>
                     <div>
-                        <h1 class="text-2xl font-bold tracking-tight text-white">QR Studio</h1>
+                        <h1 class="text-lg md:text-2xl font-bold tracking-tight text-white">QR Studio</h1>
                         <div class="flex items-center gap-2">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <p class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Multi-Format</p>
+                            <p class="text-slate-400 text-[10px] md:text-xs font-semibold uppercase tracking-wider">Multi-Format</p>
                         </div>
                     </div>
                 </div>
                 
                 <!-- INSTALL PWA BUTTON -->
-                <button id="install-btn" class="bg-brand text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-brand-hover transition-colors shadow-lg">
-                    <i class="fa-solid fa-download"></i> Installer
+                <button id="install-btn" class="bg-brand text-white px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-brand-hover transition-colors shadow-lg active:scale-95">
+                    <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">App</span>
                 </button>
             </div>
 
             <!-- Scrollable Content -->
-            <div class="flex-1 overflow-y-auto custom-scroll p-8 pt-0 space-y-6">
+            <div class="flex-1 p-6 md:p-8 pt-0 space-y-6 lg:overflow-y-auto custom-scroll">
 
                 <!-- 1. TABS SELECTOR -->
                 <div>
@@ -245,13 +248,28 @@
                             <i class="fa-solid fa-key text-slate-500 mr-3 text-sm"></i>
                             <input type="text" id="inp-wifi-pass" placeholder="Mot de passe">
                         </div>
-                        <div class="input-group rounded-xl flex items-center px-4 py-3">
-                            <i class="fa-solid fa-lock text-slate-500 mr-3 text-sm"></i>
-                            <select id="inp-wifi-type" class="bg-transparent text-slate-300">
-                                <option value="WPA" class="bg-[#1e293b]">WPA/WPA2 (Standard)</option>
-                                <option value="WEP" class="bg-[#1e293b]">WEP</option>
-                                <option value="nopass" class="bg-[#1e293b]">Aucun mot de passe</option>
-                            </select>
+                        
+                        <!-- CUSTOM WIFI TYPE SELECT -->
+                        <div class="select-wrapper" id="wifi-type-select">
+                            <div class="input-group rounded-xl px-4 py-3 flex justify-between items-center cursor-pointer hover:border-brand-accent/30 transition" onclick="toggleWifiType(event)">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-lock text-slate-500 text-sm"></i>
+                                    <span id="selected-wifi-type-label" class="text-sm font-semibold text-white">WPA/WPA2 (Standard)</span>
+                                </div>
+                                <i class="fa-solid fa-chevron-down text-xs text-slate-500 transition-transform duration-300" id="wifi-type-arrow"></i>
+                            </div>
+                            <div class="select-options absolute top-full mt-2 left-0 w-full bg-[#1e293b] border border-white/10 rounded-xl shadow-2xl overflow-hidden p-1.5 z-50">
+                                <div class="p-2.5 rounded-lg bg-brand/10 cursor-pointer flex justify-between items-center mb-1" onclick="setWifiType('WPA', 'WPA/WPA2 (Standard)')">
+                                    <span class="text-sm font-bold text-brand-accent">WPA/WPA2</span>
+                                </div>
+                                <div class="p-2.5 rounded-lg hover:bg-white/5 cursor-pointer flex justify-between items-center group" onclick="setWifiType('WEP', 'WEP')">
+                                    <span class="text-sm text-slate-300 group-hover:text-white">WEP</span>
+                                </div>
+                                <div class="p-2.5 rounded-lg hover:bg-white/5 cursor-pointer flex justify-between items-center group" onclick="setWifiType('nopass', 'Aucun mot de passe')">
+                                    <span class="text-sm text-slate-300 group-hover:text-white">Aucun mot de passe</span>
+                                </div>
+                            </div>
+                            <input type="hidden" id="inp-wifi-type" value="WPA">
                         </div>
                     </div>
 
@@ -383,14 +401,14 @@
         </div>
 
         <!-- ================= DROITE : APERÇU ================= -->
-        <div class="w-full lg:w-7/12 bg-[#0b101b]/50 relative flex flex-col justify-between min-h-[500px] overflow-hidden">
+        <div class="w-full lg:w-7/12 bg-[#0b101b]/50 relative flex flex-col justify-between min-h-[400px] lg:min-h-[500px] overflow-hidden rounded-b-none md:rounded-b-3xl md:rounded-bl-none">
             
             <div class="flex-1 flex flex-col items-center justify-center p-8 lg:p-12 relative w-full">
                 <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-brand/20 rounded-full blur-[80px] pointer-events-none"></div>
                 
                 <div class="relative z-10 group">
                     <div class="transparent-grid p-4 rounded-2xl shadow-card border border-white/10 bg-white">
-                        <canvas id="qr-code" class="block rounded-lg w-full h-auto max-w-[280px] lg:max-w-[320px]"></canvas>
+                        <canvas id="qr-code" class="block rounded-lg w-full h-auto max-w-[200px] sm:max-w-[280px] lg:max-w-[320px]"></canvas>
                     </div>
                 </div>
                 
@@ -402,7 +420,7 @@
             </div>
 
             <div class="p-6 lg:p-8 border-t border-white/5 bg-[#0f172a]/60 backdrop-blur-md relative z-50">
-                <div class="grid grid-cols-3 gap-4 max-w-lg mx-auto">
+                <div class="grid grid-cols-3 gap-3 md:gap-4 max-w-lg mx-auto">
                     
                     <!-- Download (Menu) -->
                     <div class="relative group">
@@ -421,21 +439,21 @@
                             </button>
                         </div>
 
-                        <button onclick="toggleDownloadMenu()" class="w-full relative overflow-hidden rounded-xl bg-white/5 hover:bg-brand border border-white/5 p-4 flex flex-col items-center justify-center gap-2 transition-all duration-300 active:scale-95">
-                            <i class="fa-solid fa-download text-xl text-slate-400 group-hover:text-white transition-colors"></i>
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500 group-hover:text-white transition-colors">Télécharger</span>
+                        <button onclick="toggleDownloadMenu()" class="w-full relative overflow-hidden rounded-xl bg-white/5 hover:bg-brand border border-white/5 p-3 md:p-4 flex flex-col items-center justify-center gap-2 transition-all duration-300 active:scale-95">
+                            <i class="fa-solid fa-download text-lg md:text-xl text-slate-400 group-hover:text-white transition-colors"></i>
+                            <span class="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-slate-500 group-hover:text-white transition-colors">Télécharger</span>
                             <div class="absolute top-2 right-2 opacity-50"><i class="fa-solid fa-chevron-up text-[8px] text-white"></i></div>
                         </button>
                     </div>
                     
-                    <button onclick="printQR()" class="group relative overflow-hidden rounded-xl bg-white/5 hover:bg-brand-accent border border-white/5 p-4 flex flex-col items-center justify-center gap-2 transition-all duration-300 active:scale-95">
-                        <i class="fa-solid fa-print text-xl text-slate-400 group-hover:text-white relative z-10 transition-colors"></i>
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500 group-hover:text-white relative z-10 transition-colors">Imprimer</span>
+                    <button onclick="printQR()" class="group relative overflow-hidden rounded-xl bg-white/5 hover:bg-brand-accent border border-white/5 p-3 md:p-4 flex flex-col items-center justify-center gap-2 transition-all duration-300 active:scale-95">
+                        <i class="fa-solid fa-print text-lg md:text-xl text-slate-400 group-hover:text-white relative z-10 transition-colors"></i>
+                        <span class="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-slate-500 group-hover:text-white relative z-10 transition-colors">Imprimer</span>
                     </button>
                     
-                    <button onclick="shareQR()" class="group relative overflow-hidden rounded-xl bg-white/5 hover:bg-emerald-500 border border-white/5 p-4 flex flex-col items-center justify-center gap-2 transition-all duration-300 active:scale-95">
-                        <i class="fa-solid fa-share-nodes text-xl text-slate-400 group-hover:text-white relative z-10 transition-colors"></i>
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500 group-hover:text-white relative z-10 transition-colors">Partager</span>
+                    <button onclick="shareQR()" class="group relative overflow-hidden rounded-xl bg-white/5 hover:bg-emerald-500 border border-white/5 p-3 md:p-4 flex flex-col items-center justify-center gap-2 transition-all duration-300 active:scale-95">
+                        <i class="fa-solid fa-share-nodes text-lg md:text-xl text-slate-400 group-hover:text-white relative z-10 transition-colors"></i>
+                        <span class="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-slate-500 group-hover:text-white relative z-10 transition-colors">Partager</span>
                     </button>
                 </div>
             </div>
@@ -443,49 +461,57 @@
     </div>
 
     <!-- Toast -->
-    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 bg-white text-slate-900 px-6 py-3.5 rounded-full shadow-2xl transform -translate-y-32 transition-all duration-500 z-[100] flex items-center gap-3 font-semibold pointer-events-none opacity-0 border border-slate-100">
-        <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600"><i class="fa-solid fa-check text-xs"></i></div>
+    <div id="toast" class="fixed top-6 left-1/2 -translate-x-1/2 bg-white text-slate-900 px-6 py-3.5 rounded-full shadow-2xl transform -translate-y-32 transition-all duration-500 z-[100] flex items-center gap-3 font-semibold pointer-events-none opacity-0 border border-slate-100 w-max max-w-[90vw]">
+        <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0"><i class="fa-solid fa-check text-xs"></i></div>
         <span id="toast-msg" class="text-sm">Action effectuée</span>
     </div>
 
     <script>
         // --- PWA INIT ---
-        // Génération automatique d'une icône SVG Base64 pour le Manifest et les Favicons
         const iconSvg = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='128' fill='%234f46e5'/%3E%3Cpath fill='%23fff' d='M144 144h80v80h-80zm0 144h80v80h-80zm144 0h80v80h-80zm144-144h-80v80h80zM112 112v144h144V112H112zm0 144v144h144V256H112zm144 0h144v144H256V256zm32-112h80v80h-80v-80z'/%3E%3C/svg%3E`;
         
-        // Configuration du Manifest
+        // MANIFEST CONFIG - Fix: start_url absolute
         const manifest = {
             "name": "QR Studio Pro",
             "short_name": "QR Studio",
-            "start_url": ".",
+            "start_url": window.location.href, // Correction de l'URL relative
             "display": "standalone",
             "background_color": "#0a0f1c",
             "theme_color": "#4f46e5",
             "icons": [{ "src": iconSvg, "sizes": "512x512", "type": "image/svg+xml" }]
         };
 
-        // Injection du Manifest et des Icônes
         const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
         document.getElementById('manifest-placeholder').href = URL.createObjectURL(manifestBlob);
         document.getElementById('favicon-placeholder').href = iconSvg;
         document.getElementById('apple-icon-placeholder').href = iconSvg;
 
-        // Gestionnaire d'installation PWA
+        // --- GESTIONNAIRE D'INSTALLATION INTELLIGENT ---
         let deferredPrompt;
+        const installBtn = document.getElementById('install-btn');
+
+        // Écouter l'événement si le navigateur le supporte
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            document.getElementById('install-btn').classList.add('visible');
+            installBtn.classList.add('pulse'); // Animation pour attirer l'attention
         });
 
-        document.getElementById('install-btn').addEventListener('click', async () => {
+        installBtn.addEventListener('click', async () => {
             if (deferredPrompt) {
+                // Cas 1 : L'installation native est disponible
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
                 if (outcome === 'accepted') {
                     deferredPrompt = null;
-                    document.getElementById('install-btn').classList.remove('visible');
+                    installBtn.style.display = 'none'; // Cacher après installation
                 }
+            } else {
+                // Cas 2 : Fallback manuel (ex: iOS ou Desktop non supporté)
+                showToast("Pour installer : Menu Navigateur > Ajouter à l'écran d'accueil");
+                // Petit effet visuel pour montrer que le clic a fonctionné
+                installBtn.classList.add('scale-95');
+                setTimeout(() => installBtn.classList.remove('scale-95'), 200);
             }
         });
 
@@ -512,12 +538,16 @@
             eccLabel: document.getElementById('selected-ecc-label'),
             eccArrow: document.getElementById('ecc-arrow'),
             
+            // WiFi Custom Select
+            wifiTypeWrapper: document.getElementById('wifi-type-select'),
+            wifiTypeLabel: document.getElementById('selected-wifi-type-label'),
+            wifiTypeArrow: document.getElementById('wifi-type-arrow'),
+            
             // Inputs Spécifiques
             inpUrl: document.getElementById('inp-url'),
-            
             inpWifiSsid: document.getElementById('inp-wifi-ssid'),
             inpWifiPass: document.getElementById('inp-wifi-pass'),
-            inpWifiType: document.getElementById('inp-wifi-type'),
+            inpWifiType: document.getElementById('inp-wifi-type'), // Hidden input
             
             inpVcName: document.getElementById('inp-vc-name'),
             inpVcSurname: document.getElementById('inp-vc-surname'),
@@ -532,7 +562,7 @@
         };
 
         let qr;
-        let currentTab = 'url'; // 'url', 'wifi', 'vcard', 'email'
+        let currentTab = 'url'; 
 
         function init() {
             try {
@@ -552,23 +582,16 @@
         // --- GESTION DES ONGLETS ---
         window.switchTab = function(type) {
             currentTab = type;
-            
-            // UI Tabs Update
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`tab-${type}`).classList.add('active');
-
-            // UI Forms Update
             document.querySelectorAll('.form-section').forEach(form => form.classList.remove('active'));
             document.getElementById(`form-${type}`).classList.add('active');
-
             updateQR();
         }
 
         // --- GÉNÉRATION DU PAYLOAD QR ---
         function generatePayload() {
-            if (currentTab === 'url') {
-                return ui.inpUrl.value || "https://google.com";
-            }
+            if (currentTab === 'url') return ui.inpUrl.value || "https://google.com";
             
             if (currentTab === 'wifi') {
                 const ssid = ui.inpWifiSsid.value;
@@ -585,7 +608,6 @@
                 const mail = ui.inpVcEmail.value;
                 const org = ui.inpVcOrg.value;
                 const web = ui.inpVcWeb.value;
-
                 let vcard = `BEGIN:VCARD\nVERSION:3.0\nN:${sn};${n}\nFN:${n} ${sn}\n`;
                 if(org) vcard += `ORG:${org}\n`;
                 if(tel) vcard += `TEL;TYPE=CELL:${tel}\n`;
@@ -601,20 +623,16 @@
                 const body = encodeURIComponent(ui.inpMailBody.value);
                 return `mailto:${dest}?subject=${subj}&body=${body}`;
             }
-
             return "Error";
         }
 
         function updateQR() {
             if (!qr) return;
-
             const isTransparent = ui.transparentToggle.checked;
-            
             if(isTransparent) ui.bgSection.classList.add('disabled-look');
             else ui.bgSection.classList.remove('disabled-look');
 
             const payload = generatePayload();
-
             const config = {
                 value: payload,
                 foreground: ui.fg.value,
@@ -623,9 +641,7 @@
                 size: parseInt(ui.size.value),
                 level: ui.ecc.value
             };
-
             qr.set(config);
-
             ui.previewFg.style.backgroundColor = config.foreground;
             ui.labelFg.innerText = config.foreground.toUpperCase();
             ui.previewBg.style.backgroundColor = config.background;
@@ -633,11 +649,8 @@
         }
 
         // --- EVENTS ---
-        
-        // Listeners génériques sur tous les inputs spécifiques
         const allInputs = [
-            ui.inpUrl, 
-            ui.inpWifiSsid, ui.inpWifiPass, ui.inpWifiType,
+            ui.inpUrl, ui.inpWifiSsid, ui.inpWifiPass, ui.inpWifiType,
             ui.inpVcName, ui.inpVcSurname, ui.inpVcPhone, ui.inpVcEmail, ui.inpVcOrg, ui.inpVcWeb,
             ui.inpMailDest, ui.inpMailObj, ui.inpMailBody
         ];
@@ -657,6 +670,7 @@
             if(except !== 'quality') { ui.qualityWrapper.classList.remove('active'); ui.qualityArrow.style.transform = 'rotate(0deg)'; }
             if(except !== 'ecc') { ui.eccWrapper.classList.remove('active'); ui.eccArrow.style.transform = 'rotate(0deg)'; }
             if(except !== 'download') { ui.downloadMenu.classList.remove('visible-menu'); ui.downloadMenu.classList.add('hidden-menu'); }
+            if(except !== 'wifiType') { ui.wifiTypeWrapper.classList.remove('active'); ui.wifiTypeArrow.style.transform = 'rotate(0deg)'; }
         }
 
         window.toggleSelect = function(e) { e.stopPropagation(); closeAllSelects('quality'); const isActive = ui.qualityWrapper.classList.contains('active'); if(isActive) { ui.qualityWrapper.classList.remove('active'); ui.qualityArrow.style.transform = 'rotate(0deg)'; } else { ui.qualityWrapper.classList.add('active'); ui.qualityArrow.style.transform = 'rotate(180deg)'; } };
@@ -665,27 +679,23 @@
         window.toggleEcc = function(e) { e.stopPropagation(); closeAllSelects('ecc'); const isActive = ui.eccWrapper.classList.contains('active'); if(isActive) { ui.eccWrapper.classList.remove('active'); ui.eccArrow.style.transform = 'rotate(0deg)'; } else { ui.eccWrapper.classList.add('active'); ui.eccArrow.style.transform = 'rotate(180deg)'; } };
         window.setEcc = function(val, label) { ui.ecc.value = val; ui.eccLabel.innerText = label; closeAllSelects(); updateQR(); };
         
+        window.toggleWifiType = function(e) { e.stopPropagation(); closeAllSelects('wifiType'); const isActive = ui.wifiTypeWrapper.classList.contains('active'); if(isActive) { ui.wifiTypeWrapper.classList.remove('active'); ui.wifiTypeArrow.style.transform = 'rotate(0deg)'; } else { ui.wifiTypeWrapper.classList.add('active'); ui.wifiTypeArrow.style.transform = 'rotate(180deg)'; } };
+        window.setWifiType = function(val, label) { ui.inpWifiType.value = val; ui.wifiTypeLabel.innerText = label; closeAllSelects(); updateQR(); };
+
         window.toggleDownloadMenu = function() { const isVisible = ui.downloadMenu.classList.contains('visible-menu'); closeAllSelects('download'); if(isVisible) { ui.downloadMenu.classList.remove('visible-menu'); ui.downloadMenu.classList.add('hidden-menu'); } else { ui.downloadMenu.classList.remove('hidden-menu'); ui.downloadMenu.classList.add('visible-menu'); } };
 
-        document.addEventListener('click', function(e) { if (!e.target.closest('.select-wrapper') && !e.target.closest('#download-menu') && !e.target.closest('button[onclick="toggleDownloadMenu()"]')) { closeAllSelects(); } });
+        document.addEventListener('click', function(e) { 
+            if (!e.target.closest('.select-wrapper') && !e.target.closest('#download-menu') && !e.target.closest('button[onclick="toggleDownloadMenu()"]')) { closeAllSelects(); } 
+        });
 
         function showToast(msg) { ui.toastMsg.innerText = msg; ui.toast.classList.remove('-translate-y-32', 'opacity-0'); ui.toast.classList.add('translate-y-0', 'opacity-100'); setTimeout(() => { ui.toast.classList.add('-translate-y-32', 'opacity-0'); ui.toast.classList.remove('translate-y-0', 'opacity-100'); }, 3000); }
 
-        // --- DOWNLOAD & PRINT (Idem précédent) ---
         window.downloadFormat = function(type) {
             const link = document.createElement('a');
-            const data = generatePayload(); // Nom fichier basé sur contenu ?
             const fileName = currentTab + "-" + Date.now();
-            
-            if (type === 'png_trans') {
-                link.download = `${fileName}.png`; link.href = ui.canvas.toDataURL("image/png");
-            } else if (type === 'png_white') {
-                const tempCanvas = document.createElement('canvas'); tempCanvas.width = ui.canvas.width; tempCanvas.height = ui.canvas.height; const ctx = tempCanvas.getContext('2d'); ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height); ctx.drawImage(ui.canvas, 0, 0);
-                link.download = `${fileName}-w.png`; link.href = tempCanvas.toDataURL("image/png");
-            } else if (type === 'jpeg') {
-                const tempCanvas = document.createElement('canvas'); tempCanvas.width = ui.canvas.width; tempCanvas.height = ui.canvas.height; const ctx = tempCanvas.getContext('2d'); ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height); ctx.drawImage(ui.canvas, 0, 0);
-                link.download = `${fileName}.jpg`; link.href = tempCanvas.toDataURL("image/jpeg", 0.92);
-            }
+            if (type === 'png_trans') { link.download = `${fileName}.png`; link.href = ui.canvas.toDataURL("image/png"); } 
+            else if (type === 'png_white') { const tempCanvas = document.createElement('canvas'); tempCanvas.width = ui.canvas.width; tempCanvas.height = ui.canvas.height; const ctx = tempCanvas.getContext('2d'); ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height); ctx.drawImage(ui.canvas, 0, 0); link.download = `${fileName}-w.png`; link.href = tempCanvas.toDataURL("image/png"); } 
+            else if (type === 'jpeg') { const tempCanvas = document.createElement('canvas'); tempCanvas.width = ui.canvas.width; tempCanvas.height = ui.canvas.height; const ctx = tempCanvas.getContext('2d'); ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height); ctx.drawImage(ui.canvas, 0, 0); link.download = `${fileName}.jpg`; link.href = tempCanvas.toDataURL("image/jpeg", 0.92); }
             link.click(); closeAllSelects(); showToast('Téléchargement lancé !');
         };
 
@@ -707,14 +717,11 @@
             doc.head.appendChild(style);
             const container = doc.createElement('div'); container.className = 'container';
             const img = doc.createElement('img'); img.src = dataUrl;
-            
-            // Affichage intelligent du texte en dessous selon le type
             const text = doc.createElement('p');
             if(currentTab === 'wifi') text.textContent = `WiFi: ${ui.inpWifiSsid.value}`;
             else if(currentTab === 'vcard') text.textContent = `Contact: ${ui.inpVcSurname.value} ${ui.inpVcName.value}`;
             else if(currentTab === 'email') text.textContent = `Email: ${ui.inpMailDest.value}`;
             else text.textContent = ui.inpUrl.value;
-
             container.appendChild(img); container.appendChild(text); doc.body.appendChild(container);
             img.onload = function() { setTimeout(() => { win.print(); }, 500); };
         };
